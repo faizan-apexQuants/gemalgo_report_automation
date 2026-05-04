@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gemalgo Dashboard</title>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js DataLabels Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
+    <style>
+        @page {
+            size: landscape;
+            margin: 0;
+        }
+
+        html,
+        body {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            width: 1365px;
+            height: 768px;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --bg-color: #06152d;
+            /* Deepest background */
+            --header-bg: #0d1a30;
+            /* Slightly lighter for header */
+            --card-bg: #0b182b;
+            /* Card background */
+            --border-color: #15243b;
+            /* Subtle borders */
+            --text-main: #ffffff;
+            --text-label: #5d8ebf;
+            /* Blueish labels */
+            --green: #10d367;
+            /* Bright green */
+            --green-bg: rgba(16, 211, 103, 0.15);
+            /* Green fill */
+            --red: #ff3b4b;
+            /* Bright red */
+            --blue-logo: #2385f0;
+            /* Gemalgo blue */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(180deg, #06152d 0%, #071a35 100%);
+            color: var(--text-main);
+            width: 1365px;
+            height: 768px;
+            padding: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ── Main Container ── */
+        .wrapper {
+            width: 100%;
+            max-width: 1365px;
+            min-height: 768px;
+            display: flex;
+            gap: 16px;
+            height: 100%;
+        }
+
+        /* ── Left Panel ── */
+        .left-col {
+            width: 640px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* ── Header Blocks (Top Left & Top Right of Image, but here mapped nicely) ── */
+        .header-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .header-box {
+            background: #081a39;
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            border-radius: 4px;
+            box-shadow: 0 10px 18px rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .header-val {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .header-lbl {
+            font-size: 13px;
+            color: var(--text-label);
+            font-weight: 500;
+        }
+
+        /* ── KPI Grid ── */
+        .row-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .card {
+            background: #081a39;
+            padding: 15px 10px;
+            text-align: center;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            box-shadow: 0 10px 18px rgba(0, 0, 0, 0.35);
+        }
+
+        .card-val {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .card-lbl {
+            font-size: 13px;
+            color: var(--text-label);
+            margin-top: 6px;
+        }
+
+        .text-green {
+            color: var(--green) !important;
+        }
+
+        .text-red {
+            color: var(--red) !important;
+        }
+
+        /* ── Highlight Box (Balance) ── */
+        .balance-box {
+            border: 2px solid #36ff9b;
+            background-color: #081a39;
+        }
+
+        .balance-box .card-val {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        /* ── Lower 6 Grid ── */
+        .grid-6 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        /* ── Logo ── */
+        .logo-box {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 8px 0 0 24px;
+        }
+
+        .logo-image {
+            width: 420px;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        /* ── Right Panel (Charts) ── */
+        .right-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .chart-wrapper {
+            flex: 1;
+            background: #081a39;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            padding: 12px;
+            border-radius: 4px;
+            box-shadow: 0 10px 18px rgba(0, 0, 0, 0.35);
+        }
+
+        .chart-wrapper:first-child {
+            border-top: none;
+            padding-top: 0;
+        }
+
+        .chart-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: #d0d0d0;
+            margin-bottom: 5px;
+        }
+
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            min-height: 160px;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+            font-size: 9px;
+            color: var(--text-label);
+        }
+
+        .leg-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .leg-color {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Register the DataLabels plugin globally -->
+    <script>
+        Chart.register(ChartDataLabels);
+    </script>
+
+    <div class="wrapper">
+
+        <!-- LEFT COLUMN -->
+        <div class="left-col">
+
+            <div class="header-row">
+                <div class="header-box" style="flex: 2;">
+                    <div class="header-val">{{ name }}</div>
+                    <div class="header-lbl">Client Name</div>
+                </div>
+                <div class="header-box" style="flex: 1;">
+                    <div class="header-val">{{ acc_no }}</div>
+                    <div class="header-lbl">Account Number</div>
+                </div>
+            </div>
+
+            <div class="row-3">
+                <div class="card">
+                    <div class="card-val">{{ risk_level | replace('_',' ') }}</div>
+                    <div class="card-lbl">Risk</div>
+                </div>
+                <div class="card">
+                    <div class="card-val">{{ algo }}</div>
+                    <div class="card-lbl">Algo Name</div>
+                </div>
+                <div class="card">
+                    <div class="card-val">{{ platform }}</div>
+                    <div class="card-lbl">Platform</div>
+                </div>
+            </div>
+
+            <div class="row-3">
+                <div class="card balance-box" style="grid-column: span 1;">
+                    <div class="card-val">{{ balance }}</div>
+                    <div class="card-lbl">Current Balance</div>
+                </div>
+                <div class="card">
+                    <div class="card-val text-green">{{ profit_total }}</div>
+                    <div class="card-lbl">Overall Profit</div>
+                </div>
+                <div class="card">
+                    <div class="card-val text-green">{{ roi_total }}</div>
+                    <div class="card-lbl">Overall ROI</div>
+                </div>
+            </div>
+
+            <div class="grid-6">
+                <div class="card">
+                    <div class="card-val {% if profit_today.startswith('-') %}text-red{% else %}text-green{% endif %}">
+                        {{ profit_today }}</div>
+                    <div class="card-lbl">Today's PnL</div>
+                </div>
+                <div class="card">
+                    <div class="card-val {% if profit_week.startswith('-') %}text-red{% else %}text-green{% endif %}">{{
+                        profit_week }}</div>
+                    <div class="card-lbl">Weekly PnL</div>
+                </div>
+                <div class="card">
+                    <div class="card-val {% if profit_month.startswith('-') %}text-red{% else %}text-green{% endif %}">
+                        {{ profit_month }}</div>
+                    <div class="card-lbl">Monthly PnL</div>
+                </div>
+                <div class="card">
+                    <div class="card-val {% if pct_daily.startswith('-') %}text-red{% else %}text-green{% endif %}">{{
+                        pct_daily }}</div>
+                    <div class="card-lbl">% Daily</div>
+                </div>
+                <div class="card">
+                    <div class="card-val {% if pct_weekly.startswith('-') %}text-red{% else %}text-green{% endif %}">{{
+                        pct_weekly }}</div>
+                    <div class="card-lbl">% Weekly</div>
+                </div>
+                <div class="card">
+                    <div class="card-val {% if pct_monthly.startswith('-') %}text-red{% else %}text-green{% endif %}">{{
+                        pct_monthly }}</div>
+                    <div class="card-lbl">% Monthly</div>
+                </div>
+            </div>
+
+            <div class="logo-box">
+                <img class="logo-image"
+                    src="data:image/png;base64,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"
+                    alt="GemAlgo Logo">
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="right-col">
+
+            <div class="chart-wrapper" style="flex: 1.25;">
+                <div class="chart-title">Cumulative Profit by Year, Month and Day</div>
+                <div class="canvas-container">
+                    <canvas id="cumulativeChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-wrapper">
+                <div class="chart-title">Daily P&L</div>
+                <div class="canvas-container">
+                    <canvas id="dailyPnlChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-wrapper">
+                <div class="chart-title">Count Of Buy & Sell Trades by Day</div>
+                <div class="canvas-container">
+                    <canvas id="tradesChart"></canvas>
+                </div>
+                <div class="chart-legend">
+                    <div class="leg-item">
+                        <div class="leg-color" style="background:#10d367;"></div>Count Of Buy Trades
+                    </div>
+                    <div class="leg-item">
+                        <div class="leg-color" style="background:#ff3b4b;"></div>Count Of Sell Trades
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        const chartData = {{ chart_data | tojson | safe }};
+
+        const axisColor = 'rgba(255, 255, 255, 0.05)';
+        const tickColor = '#ffffff';
+
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }
+            },
+            layout: { padding: { top: 20 } } // Room for data labels
+        };
+
+        // 1. Cumulative Profit
+        new Chart(document.getElementById('cumulativeChart'), {
+            type: 'line',
+            data: {
+                labels: chartData.dates,
+                datasets: [{
+                    data: chartData.cumulative_profit,
+                    borderColor: '#10d367',
+                    backgroundColor: '#10d367',
+                    borderWidth: 2,
+                    fill: true,
+                    pointRadius: 2,
+                    pointBackgroundColor: '#10d367',
+                    tension: 0
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    datalabels: {
+                        color: '#ffffff',
+                        align: 'top',
+                        offset: 4,
+                        font: { size: 8, weight: 'bold' },
+                        formatter: function (value) {
+                            return '$' + value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        },
+                        display: function (context) {
+                            // Show every nth label to avoid clutter, or always show if few points
+                            return context.dataIndex % 2 === 0 ? true : false;
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: tickColor, font: { size: 9, weight: 'bold' }, maxTicksLimit: 6 }
+                    },
+                    y: {
+                        grid: { color: axisColor, drawBorder: false },
+                        ticks: {
+                            color: tickColor, font: { size: 9 }, maxTicksLimit: 4,
+                            callback: function (v) { return v >= 1000 ? (v / 1000) + 'K' : v; }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 2. Daily P&L
+        new Chart(document.getElementById('dailyPnlChart'), {
+            type: 'bar',
+            data: {
+                labels: chartData.daily_labels,
+                datasets: [{
+                    data: chartData.daily_pnl,
+                    backgroundColor: chartData.daily_pnl.map(v => v >= 0 ? '#10d367' : '#ff3b4b'),
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    datalabels: {
+                        color: '#ffffff',
+                        align: function (context) {
+                            return context.dataset.data[context.dataIndex] >= 0 ? 'top' : 'bottom';
+                        },
+                        anchor: function (context) {
+                            return context.dataset.data[context.dataIndex] >= 0 ? 'end' : 'start';
+                        },
+                        font: { size: 8, weight: 'bold' },
+                        formatter: function (value) {
+                            return (value < 0 ? '-$' : '$') + Math.abs(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: tickColor, font: { size: 9, weight: 'bold' }, maxTicksLimit: 15 }
+                    },
+                    y: {
+                        grid: { color: axisColor, drawBorder: false },
+                        ticks: {
+                            color: tickColor, font: { size: 9 }, maxTicksLimit: 3,
+                            callback: function (v) { return '$' + v; }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 3. Trade Counts
+        new Chart(document.getElementById('tradesChart'), {
+            type: 'bar',
+            data: {
+                labels: chartData.daily_labels,
+                datasets: [
+                    { data: chartData.buy_counts, backgroundColor: '#10d367' },
+                    { data: chartData.sell_counts, backgroundColor: '#ff3b4b' }
+                ]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    datalabels: {
+                        color: '#ffffff',
+                        align: 'top',
+                        anchor: 'end',
+                        font: { size: 8, weight: 'bold' },
+                        display: function (context) {
+                            return context.dataset.data[context.dataIndex] > 0;
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: tickColor, font: { size: 9, weight: 'bold' }, maxTicksLimit: 15 }
+                    },
+                    y: {
+                        grid: { color: axisColor, drawBorder: false },
+                        ticks: { color: tickColor, font: { size: 9 }, maxTicksLimit: 3 }
+                    }
+                }
+            }
+        });
+    </script>
+
+    <script>
+        window.addEventListener('load', () => {
+            document.body.style.zoom = "1";
+        });
+    </script>
+
+</body>
+
+</html>
